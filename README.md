@@ -44,6 +44,11 @@ output/
     ├── img1.jpg
     ├── img2.jpg
     └── ...
+└── Hasan/
+    ├── img1.jpg
+    ├── img2.jpg
+    └── ...
+
 ```
 
 By repeating this process, we collect multiple face samples for each individual, which helps improve the accuracy of the classifier later.
