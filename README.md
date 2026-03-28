@@ -1,4 +1,4 @@
-# 🎓 Automated Attendance System using Face Recognition
+# Automated Attendance System using Face Recognition
 
 An intelligent attendance management system that uses **deep learning face recognition** to automatically detect, identify, and record attendance — eliminating manual roll calls entirely.
 
@@ -17,11 +17,11 @@ This system solves that with a **two-stage deep learning pipeline**:
 
 ## ✨ Features
 
-- 📷 Real-time face detection using **MTCNN** (TensorFlow)
-- 🧠 Face embedding via pretrained **FaceNet** model
-- ⚡ Fast classification using **Linear SVM**
-- 📊 Attendance exported to **Excel (.xlsx)** with timestamps
-- 🖥️ Desktop GUI with CREATE / TRAIN / TEST / RUN workflow
+-  Real-time face detection using **MTCNN** (TensorFlow)
+-  Face embedding via pretrained **FaceNet** model
+-  Fast classification using **Linear SVM**
+-  Attendance exported to **Excel (.xlsx)** with timestamps
+-  Desktop GUI with CREATE / TRAIN / TEST / RUN workflow
 
 ---
 
@@ -33,7 +33,7 @@ CREATE → TRAIN → TEST → RUN → Excel Export
 
 ---
 
-## 🚀 Step-by-Step Guide
+##  Step-by-Step Guide
 
 ### Step 1 — 📁 Create Dataset
 
@@ -59,7 +59,7 @@ output/
 
 ---
 
-### Step 2 — 🏋️ Train the Model
+### Step 2 — Train the Model
 
 Use the **TRAIN** option.
 
@@ -75,11 +75,11 @@ Use the **TRAIN** option.
 | `classifier.pkl` | Trained SVM model |
 | `class_names.pkl` | List of registered person identities |
 
-> ℹ️ The FaceNet model is **not retrained** — only the SVM classifier is trained, keeping the process fast and practical.
+>  The FaceNet model is **not retrained** — only the SVM classifier is trained, keeping the process fast and practical.
 
 ---
 
-### Step 3 — 🧪 Test the Model
+### Step 3 — Test the Model
 
 Use the **TEST** option to evaluate performance.
 
@@ -91,7 +91,7 @@ Use the **TEST** option to evaluate performance.
 
 ---
 
-### Step 4 — 🎥 Run Live Face Recognition
+### Step 4 — Run Live Face Recognition
 
 Use the **RUN** option for real-world deployment.
 
@@ -100,9 +100,9 @@ Use the **RUN** option for real-world deployment.
 - Trained classifier (`.pkl` file)
 
 **Supports:**
-- 📹 Webcam input
-- 🎞️ Video files
-- 🖼️ Static images
+- Webcam input
+- Video files
+- Static images
 
 **For each frame:**
 1. Faces are detected using MTCNN
@@ -114,7 +114,7 @@ Use the **RUN** option for real-world deployment.
 
 ---
 
-### Step 5 — 📊 Export Attendance to Excel
+### Step 5 — Export Attendance to Excel
 
 Attendance is automatically saved to:
 
@@ -125,7 +125,7 @@ attendance/SAMPLE.xlsx
 | Person | Session 1 | Session 2 | ... |
 |--------|-----------|-----------|-----|
 | Kamal  | P         | A         | ... |
-| Sara   | P         | P         | ... |
+| Hasan   | P         | P         | ... |
 
 - **P** = Present
 - **A** = Absent
@@ -133,7 +133,7 @@ attendance/SAMPLE.xlsx
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |-----------|------------|
@@ -165,7 +165,7 @@ project/
 
 ---
 
-## 📸 How to Use
+## How to Use
 
 ```bash
 # 1. Clone the repository
