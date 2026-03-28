@@ -1,190 +1,147 @@
 # Automated Attendance System using Face Recognition
 
-An intelligent attendance management system that uses **deep learning face recognition** to automatically detect, identify, and record attendance — eliminating manual roll calls entirely.
+Instead of the traditional manual roll call, our system automatically detects and recognizes faces and marks attendance digitally.
+
+**The core idea is simple.**
+First, we register people by collecting their face images. Then we train a lightweight classifier on top of a deep learning face model. And finally, during runtime, the system detects faces from a webcam or video, identifies who they are, and automatically records attendance in an Excel file for proper records and auditing.
 
 ---
 
-## 📌 Overview
+## Problem and Our Approach
 
-Traditional attendance systems are time-consuming and error-prone. Teachers manually call out names, and issues like proxy attendance or human error are common.
+Traditional attendance systems are often time-consuming and error-prone. Teachers have to call out names manually, and sometimes proxies or mistakes happen.
 
-This system solves that with a **two-stage deep learning pipeline**:
+To solve this, we designed a **two-stage pipeline**.
 
-1. **FaceNet** — A deep neural network that converts face images into 512-dimensional numerical vectors called *embeddings*, which capture a person's identity.
-2. **Linear SVM Classifier** — Trained on top of FaceNet embeddings to distinguish between different individuals. Fast and lightweight, since the heavy lifting is done by the pretrained FaceNet model.
+- **Stage 1 — FaceNet:** A deep neural network that converts every face image into a fixed-length numerical vector called an *embedding*. These embeddings capture the identity of a person, meaning that faces of the same person appear close to each other in vector space.
 
----
-
-## ✨ Features
-
--  Real-time face detection using **MTCNN** (TensorFlow)
--  Face embedding via pretrained **FaceNet** model
--  Fast classification using **Linear SVM**
--  Attendance exported to **Excel (.xlsx)** with timestamps
--  Desktop GUI with CREATE / TRAIN / TEST / RUN workflow
+- **Stage 2 — Linear SVM Classifier:** Trained on top of these embeddings. The SVM learns how to separate the embeddings based on different person identities. This approach keeps training fast and lightweight, since the heavy work is already handled by the pretrained FaceNet model.
 
 ---
 
-## 🔄 Workflow
+## Workflow
 
 ```
-CREATE → TRAIN → TEST → RUN → Excel Export
+CREATE  →  TRAIN  →  TEST  →  RUN  →  Excel Export
 ```
 
 ---
 
-##  Step-by-Step Guide
+## Step 1 — Creating the Dataset
 
-### Step 1 — 📁 Create Dataset
+The process starts with the **CREATE** option in our desktop application.
 
-Use the **CREATE** option in the desktop application.
+- The user selects an output folder and enters the name of the person — for example, `Kamal`
+- The system opens the webcam or a video stream
+- We use an **MTCNN-based** face detection system implemented in TensorFlow to detect faces in real time
+- Whenever the user presses **`S`**, the system crops the detected face and saves it as an image
 
-- Enter the person's name (e.g., `Kamal`)
-- Select an output folder
-- The webcam opens — press **`S`** to capture and save face images
-
-Captured images are saved in a structured format:
+Images are stored inside a separate folder for each person:
 
 ```
 output/
-├── kamal/
-│   ├── img1.jpg
-│   ├── img2.jpg
-│   └── ...
-├── sara/
-│   └── ...
+└── kamal/
+    ├── img1.jpg
+    ├── img2.jpg
+    └── ...
 ```
 
-> Collect multiple images per person to improve classifier accuracy.
+By repeating this process, we collect multiple face samples for each individual, which helps improve the accuracy of the classifier later.
+
+**Dataset structure:**
+- One folder per person
+- Multiple face images inside each folder
 
 ---
 
-### Step 2 — Train the Model
+## Step 2 — Training the Model
 
-Use the **TRAIN** option.
+Next comes the **TRAIN** step.
 
-- Select the parent dataset folder (e.g., `output/`)
-- Each image is resized to **160×160 pixels** and fed into FaceNet
-- FaceNet generates **512-dimensional embeddings** per image
-- A **Linear SVM** is trained on these embeddings
+- The user selects the parent dataset folder (e.g., `output/`)
+- The application loads every image, resizes it to **160×160 pixels**, and feeds it into the FaceNet model
+- FaceNet generates **512-dimensional embeddings** for each image
+- These embeddings are used to train a **linear SVM classifier** with probability estimation
 
-**Output files saved:**
+After training, the system saves:
 
 | File | Description |
 |------|-------------|
-| `classifier.pkl` | Trained SVM model |
-| `class_names.pkl` | List of registered person identities |
+| `classifier.pkl` | The trained SVM model |
+| `class names list` | Identities of all registered people |
 
->  The FaceNet model is **not retrained** — only the SVM classifier is trained, keeping the process fast and practical.
-
----
-
-### Step 3 — Test the Model
-
-Use the **TEST** option to evaluate performance.
-
-- Faces are re-embedded using FaceNet
-- The SVM makes predictions on a test split or separate dataset
-- Reports generated:
-  - ✅ Prediction accuracy
-  - 📈 Confidence scores per prediction
+> **Note:** We do not retrain the deep neural network itself. We only train a lightweight classifier on the embeddings, which makes the system fast and practical even on a laptop.
 
 ---
 
-### Step 4 — Run Live Face Recognition
+## Step 3 — Testing the Model
 
-Use the **RUN** option for real-world deployment.
+After training, we move to the **TEST** stage.
 
-**Load:**
-- FaceNet model (`.pb` file)
-- Trained classifier (`.pkl` file)
+- The system evaluates the trained classifier using a separate dataset or a train–test split
+- Faces are embedded again using FaceNet and predictions are made using the SVM
 
-**Supports:**
+The system reports:
+- Prediction accuracy
+- Confidence scores for each prediction
+
+This step gives us quantitative proof that the system works reliably, not just visually.
+
+---
+
+## Step 4 — Live Face Recognition
+
+Now comes the **RUN** stage, which represents real-world usage of the system.
+
+**The user loads:**
+- The FaceNet model (`.pb` file)
+- The trained classifier (`.pkl`)
+
+**The system can process:**
 - Webcam input
 - Video files
-- Static images
+- Images
 
 **For each frame:**
-1. Faces are detected using MTCNN
-2. Detected faces are cropped and preprocessed
+1. Faces are detected
+2. The faces are cropped and processed
 3. FaceNet generates embeddings
-4. SVM predicts the identity
+4. The SVM predicts the identity
 
-> If prediction **confidence exceeds the threshold**, the person is marked as recognized and added to the attendance list.
+If the prediction confidence crosses a threshold, the person is considered recognized and their name is added to the attendance list for that session.
 
 ---
 
-### Step 5 — Export Attendance to Excel
+## Step 5 — Saving Attendance to Excel
 
-Attendance is automatically saved to:
+Attendance is automatically saved in an Excel file:
 
 ```
 attendance/SAMPLE.xlsx
 ```
 
-| Person | Session 1 | Session 2 | ... |
-|--------|-----------|-----------|-----|
-| Kamal  | P         | A         | ... |
-| Hasan   | P         | P         | ... |
+Each registered person appears as a row, based on the folders in the dataset.
 
-- **P** = Present
-- **A** = Absent
-- Timestamp is added for every session
+| Person | Session 1 | Session 2 |
+|--------|-----------|-----------|
+| Kamal  | P         | A         |
 
----
+- **P** → Present
+- **A** → Absent
+- A **timestamp** is added for every session
 
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Face Detection | MTCNN (TensorFlow) |
-| Face Embedding | FaceNet (pretrained) |
-| Classification | Linear SVM (scikit-learn) |
-| Attendance Export | OpenPyXL / Excel |
-| GUI | Desktop Application (Python) |
+This makes the attendance easy to store, review, and audit later.
 
 ---
 
-## 📂 Project Structure
+## Summary
 
-```
-project/
-├── output/                  # Dataset folder (one subfolder per person)
-├── attendance/
-│   └── SAMPLE.xlsx          # Auto-generated attendance file
-├── models/
-│   ├── facenet_model.pb     # Pretrained FaceNet model
-│   └── classifier.pkl       # Trained SVM classifier
-├── src/
-│   ├── create_dataset.py
-│   ├── train.py
-│   ├── test.py
-│   └── run.py
-└── README.md
-```
+| Step | Action |
+|------|--------|
+| **CREATE** | Builds the labeled face dataset |
+| **TRAIN** | Generates embeddings and trains the SVM classifier |
+| **TEST** | Evaluates the model accuracy |
+| **RUN** | Performs live face recognition |
+| **Excel Export** | Records attendance automatically |
 
----
-
-## How to Use
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/attendance-face-recognition.git
-cd attendance-face-recognition
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Run the application
-python app.py
-```
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
-
----
-
-> Built with ❤️ using deep learning for face representation and classical ML for classification — fast, practical, and scalable for classrooms, events, and institutions.
+By combining deep learning for face representation and classical machine learning for classification, our system achieves a fast, practical, and scalable attendance solution suitable for classrooms, events, or institutions.
