@@ -1,86 +1,213 @@
-# This is the official implementation of
+Automated Attendance System using Face Recognition
+Overview
 
-## An End-to-End Real-Time Face Identification and Attendance System using Convolutional Neural Networks 
-(https://ieeexplore.ieee.org/document/9029001)
+Our project is an Automated Attendance System using Face Recognition. Instead of the traditional manual roll call, our system automatically detects and recognizes faces and marks attendance digitally.
 
+The core idea is simple:
 
+Register people by collecting their face images.
+Train a lightweight classifier on top of a deep learning face model.
+Detect and recognize faces during runtime.
+Automatically record attendance in an Excel file.
+Problem Statement
 
-An end-to-end face identification and attendance approach using Convolutional Neural Networks (CNN), which processes the CCTV footage or a video of the class and mark the attendance of the entire class simultaneously. One of the main advantages of the proposed solution is its robustness against usual challenges like occlusion (partially visible/covered faces), orientation, alignment and luminescence of the classroom.
+Traditional attendance systems are often time-consuming and error-prone. Teachers need to call names manually, and sometimes proxy attendance or mistakes can occur.
 
-# Libraries
-1. Tensorflow 1.14
-2. Numpy
-3. OpenCV
-4. MTCNN
-5. Sklearn
-6. xlsxwriter, xlrd
-7. scipy
-8. pickle
+To solve this, we built an automated system that uses face recognition to mark attendance automatically.
 
+System Architecture
 
-# How to use
+Our system follows a two-stage pipeline.
 
-## Installation
-1. Install the required libraries. (Conda environment preferred).
-2. Download the pre-trained model from [[link]](https://drive.google.com/open?id=1EXPBSXwTaqrSC0OhUdXNmKSh9qJUQ55-) and copy to the main directory.
-3. Make sure to have the below mentioned directory structure (you've to manually create two folders named "attendance" and "output" in the main directory | refer to the "Main" directory structure).
-4. To verify if everything is installed correctly, run 'user_interface.py'.
+Stage 1 — Face Embedding using FaceNet
 
-## Create Dataset
-1. Run 'user_interface.py'
-2. Click on the 'Create' button.
-3. Select 'webcam' if you wish to create live dataset. (you can leave all other fileds empty)
-4. Click on the 'Continue' button to start streaming webcam feed.
-5. Press 's' to save the face images. Take as many images as you can take. (approx. 80-100 preferred)
-6. Press 'q' to exit.
-7. Likewise create other datasets.
+We use a deep neural network based on FaceNet to convert every face image into a fixed-length numerical vector called an embedding.
 
-## Training
-1. Run 'user_interface.py'
-2. Click on the 'Train' button.
-3. Training may take several minutes (depending upon your system configuration).
-4. Once training is completed, a 'classifier.pkl' file will be generated.
+Each face → converted into a 512-dimensional embedding
+Faces of the same person appear closer in vector space
+Faces of different people appear farther apart
 
-## Run
-1. Run 'user_interface.py'
-2. Click on the 'Run' button.
-3. Select 'Webcam' fom the list and leave all fields blank.
-4. Click on 'Mark Attendance' button.
-5. Attendance sheet will be generated automatically with current date/time.
+This embedding captures the identity of a person.
 
-## Make sure to have following directory structure
-1. 'Main' directory:
-<img src="https://github.com/aashishrai3799/Automated-Attendance-System-using-CNN/blob/master/images/image5.png" width="480">
-2. 'output' directory:
-<img src="https://github.com/aashishrai3799/Automated-Attendance-System-using-CNN/blob/master/images/image4.png" width="480">
-3. '20180402-114759' directory:
-<img src="https://github.com/aashishrai3799/Automated-Attendance-System-using-CNN/blob/master/images/image3.png" width="480">
+Stage 2 — Classification using SVM
 
+On top of the embeddings, we train a Linear SVM classifier.
 
+The SVM learns how to separate embeddings belonging to different identities.
 
-The file for data augmentation will be uploaded soon.
+Advantages of this approach:
 
-To know more about the working of the software, refer to our paper.
+Training is very fast
+The deep model does not need retraining
+Works efficiently even on normal laptops
+Workflow
 
+The application follows a simple pipeline:
 
+CREATE → TRAIN → TEST → RUN → EXPORT ATTENDANCE
+Step 1 — Creating the Dataset
 
-## Download pre-trained model:
-https://drive.google.com/open?id=1EXPBSXwTaqrSC0OhUdXNmKSh9qJUQ55-
+The process begins with the CREATE option in the desktop application.
 
+Steps
+The user selects an output folder.
+The user enters the name of the person (example: Kamal).
+The webcam or video stream opens.
+The system detects faces using MTCNN (TensorFlow implementation).
+When the user presses S, the detected face is cropped and saved.
 
-## Cite
-If you find this paper/code userful, consider citing
+````
+Example Dataset Structure
+output/
+│
+├── kamal/
+│   ├── img1.jpg
+│   ├── img2.jpg
+│   ├── img3.jpg
+│
+├── hasan/
+│   ├── img1.jpg
+│   ├── img2.jpg
+````
 
-```
-@INPROCEEDINGS{9029001,  
-author={Rai, Aashish and Karnani, Rashmi and Chudasama, Vishal and Upla, Kishor},  
-booktitle={2019 IEEE 16th India Council International Conference (INDICON)},   
-title={An End-to-End Real-Time Face Identification and Attendance System using Convolutional Neural Networks},   
-year={2019},  volume={},  number={},  pages={1-4},  
-doi={10.1109/INDICON47234.2019.9029001}}
-```
+Each person has:
 
-## License
+One folder
+Multiple face images
 
-The code is available under MIT License. Please read the license terms available at [[Link]](https://github.com/aashishrai3799/Automated-Attendance-System-using-CNN/blob/master/LICENSE)
+This improves recognition accuracy.
 
+Step 2 — Training the Model
+
+Next comes the TRAIN step.
+
+The user selects the parent dataset folder (e.g. output/).
+
+Training Pipeline
+All images are loaded.
+Each image is resized to 160 × 160 pixels.
+The image is passed to FaceNet.
+FaceNet generates 512-dimensional embeddings.
+These embeddings are used to train a Linear SVM classifier.
+Files Generated
+
+After training, the system saves:
+
+classifier.pkl   → trained SVM classifier
+class_names.pkl  → list of registered identities
+
+Important point:
+
+We do not retrain the deep neural network.
+We only train a lightweight classifier on top of embeddings.
+
+This makes the system fast and efficient.
+
+Step 3 — Testing the Model
+
+After training, we evaluate the model using the TEST stage.
+
+Evaluation Process
+Faces are converted into embeddings using FaceNet.
+The trained SVM classifier predicts identities.
+The system reports:
+Prediction accuracy
+Confidence scores
+
+This step provides quantitative evaluation of the model performance.
+
+Step 4 — Live Face Recognition
+
+The RUN stage represents the real-world usage of the system.
+
+The user loads:
+
+FaceNet model (.pb file)
+Trained classifier (.pkl)
+
+The system can process:
+
+Webcam input
+Video files
+Images
+Recognition Pipeline
+
+For each frame:
+
+Faces are detected
+Faces are cropped and preprocessed
+FaceNet generates embeddings
+The SVM classifier predicts the identity
+
+If the confidence score crosses a predefined threshold, the person is considered recognized.
+
+Step 5 — Saving Attendance to Excel
+
+Attendance is automatically saved in an Excel file.
+
+If the file does not exist, the system creates:
+
+attendance/SAMPLE.xlsx
+Attendance Format
+Name	Session 1	Session 2	Timestamp
+Kamal	P	A	10:32 AM
+Rahul	A	P	10:33 AM
+
+Where:
+
+P → Present
+A → Absent
+
+This allows easy storage, review, and auditing of attendance records.
+
+Technologies Used
+Python
+TensorFlow
+FaceNet
+MTCNN
+Scikit-learn (SVM)
+OpenCV
+NumPy
+Pandas
+Excel Export
+
+````
+Project Pipeline Summary
+CREATE
+   ↓
+Capture face images
+
+TRAIN
+   ↓
+Generate embeddings + train SVM
+
+TEST
+   ↓
+Evaluate model accuracy
+
+RUN
+   ↓
+Real-time face recognition
+
+EXPORT
+   ↓
+Attendance saved to Excel
+````
+
+Applications
+
+This system can be used in:
+
+Classrooms
+Universities
+Offices
+Events
+Conferences
+Employee attendance systems
+Conclusion
+
+By combining deep learning for face representation (FaceNet) and classical machine learning for classification (SVM), our system provides a fast, practical, and scalable attendance solution.
+
+It eliminates manual attendance, reduces errors, and automates record management.
+
+Thank you.
